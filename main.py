@@ -7,7 +7,7 @@ import time
 import sys
 import os
 
-# MediaPipe Configuration
+
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(
     static_image_mode=False,
