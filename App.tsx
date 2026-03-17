@@ -91,7 +91,6 @@ const App: React.FC = () => {
     });
   }, [addLog, stopAudio]);
 
-  // UPLINK: Exposing functionality to Python backend
   useEffect(() => {
     (window as any).brahmastra_uplink = {
       toggleMute: toggleMute,
