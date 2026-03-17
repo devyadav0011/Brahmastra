@@ -1,0 +1,18 @@
+
+{
+  "name": "BRAHMASTRA | AI Concierge",
+  "short_name": "BRAHMASTRA",
+  "description": "A JARVIS-inspired desktop voice assistant with scriptural wisdom.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#020617",
+  "theme_color": "#06b2d4",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/neon/512/processor.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

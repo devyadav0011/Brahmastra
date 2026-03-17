@@ -2,6 +2,8 @@
   "name": "BRAHMASTRA AI Concierge",
   "description": "A high-tech, Jarvis-inspired desktop voice assistant with deep knowledge of Hindu epics and Hinglish conversation capabilities.",
   "requestFramePermissions": [
-    "microphone"
+    "microphone",
+    "camera",
+    "geolocation"
   ]
 }

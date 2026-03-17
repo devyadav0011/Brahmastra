@@ -1,4 +1,14 @@
 
+export type ThemeType = 'Indigo' | 'Saffron' | 'Emerald';
+
+export interface Process {
+  pid: number;
+  name: string;
+  cpu: number;
+  memory: number;
+  status: 'Running' | 'Suspended' | 'Critical';
+}
+
 export interface Message {
   role: 'user' | 'assistant';
   content: string;
@@ -12,17 +22,17 @@ export enum ConnectionStatus {
   ERROR = 'ERROR'
 }
 
-export interface SystemStatus {
-  core: 'stable' | 'warning' | 'critical';
-  memory: string;
-  knowledgeBase: string;
-  accessLevel: 'Admin' | 'User';
-}
-
 export interface Protocol {
   id: string;
   phrase: string;
   action: string;
+}
+
+export interface CommandShortcut {
+  id: string;
+  alias: string;
+  command: string;
+  description: string;
 }
 
 export interface ScriptureResult {
