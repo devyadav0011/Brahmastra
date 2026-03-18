@@ -48,7 +48,6 @@ const App: React.FC = () => {
   const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
   const [protocolAlert, setProtocolAlert] = useState<string | null>(null);
   
-  // Vision state (Now controlled externally by Python)
   const [isVisionActive, setIsVisionActive] = useState(true); 
   
   const [commandLogs, setCommandLogs] = useState<string[]>(["Brahmastra OS initializing...", "Waiting for admin uplink..."]);
@@ -254,7 +253,6 @@ const App: React.FC = () => {
             }
             if (message.serverContent?.interrupted) stopAudio();
             
-            // Handle Tool Calls (Simulated PC Commands & Scripture Search)
             if (message.toolCall) {
               for (const fc of message.toolCall.functionCalls) {
                 if (fc.name === 'execute_system_command') {
