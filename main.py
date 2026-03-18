@@ -98,7 +98,6 @@ class BRAHMASTRACore:
                             self.trigger_ui_mute()
                             self.last_gesture_time = current_time
 
-            # Small sleep to reduce CPU load (20 FPS is enough for gesture)
             time.sleep(0.05)
         
         cap.release()
