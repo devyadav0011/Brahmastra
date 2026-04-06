@@ -29,7 +29,7 @@ class BRAHMASTRACore:
         Detects a 'Stop' gesture (Open Palm).
         Logic: All fingertips must be significantly higher than their MCP joints.
         """
-        # Finger tip indices: Index=8, Middle=12, Ring=16, Pinky=20
+        # Finger tip indices: Index=8, Middle=12, Ring=16, Pinky=20 
         # Finger MCP indices: Index=5, Middle=9, Ring=13, Pinky=17 
         tips = [8, 12, 16, 20]
         mcps = [5, 9, 13, 17]
