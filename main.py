@@ -44,7 +44,6 @@ class BRAHMASTRACore:
             pass # Simplified for generic stop
             
         return is_stop
-
     def camera_worker(self):
         """
         Background thread for computer vision.
