@@ -1,5 +1,3 @@
-
-
 This contains everything you need to run your app locally.
 
 View your app in AI Studio: https://ai.studio/apps/c1601bfa-0faf-4871-b9b4-e5de335b5fe9
