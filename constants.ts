@@ -25,7 +25,7 @@ COMMAND CAPABILITIES:
 If the user uploads an image, analyze it with maximum detail using your visual sensors.
 `;
 
-export const MODEL_NAME = 'gemini-2.5-flash-native-audio-preview-12-2025';
+export const MODEL_NAME = 'gemini-3.1-flash-live-preview';
 
 export const SYSTEM_COMMAND_TOOL: FunctionDeclaration = {
   name: 'execute_system_command',

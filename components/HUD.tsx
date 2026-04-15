@@ -1,6 +1,9 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { ConnectionStatus, Protocol, ScriptureResult, Message, ThemeType, Process, CommandShortcut } from '../types';
+import { ChatModal } from './ChatModal';
+import { GestureControl } from './GestureControl';
+import { Hand3DExperience } from './Hand3DExperience';
 
 interface HUDProps {
   status: ConnectionStatus;
@@ -34,6 +37,7 @@ interface HUDProps {
   onDeleteShortcut: (id: string) => void;
   onToggleVision: () => void;
   isVisionActive: boolean;
+  addLog: (msg: string) => void;
 }
 
 const HUD: React.FC<HUDProps> = ({ 
@@ -41,10 +45,10 @@ const HUD: React.FC<HUDProps> = ({
   protocols, onRemoveProtocol, onTogglePower, scriptureResults, 
   commandLogs, processes, onKillProcess, onImageUpload, isAnalyzingImage,
   commandShortcuts, onAddShortcut, onUpdateShortcut, onDeleteShortcut,
-  history, onToggleMute, onToggleVision, isVisionActive
+  history, onToggleMute, onToggleVision, isVisionActive, addLog
 }) => {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
-  const [activeModal, setActiveModal] = useState<'Protocols' | 'Scriptures' | 'History' | 'Telemetry' | 'Web' | null>(null);
+  const [activeModal, setActiveModal] = useState<'Protocols' | 'Scriptures' | 'History' | 'Telemetry' | 'Web' | 'Chat' | 'Sculpt' | null>(null);
   const [telemetryTab, setTelemetryTab] = useState<'Processes' | 'Commands'>('Processes');
   const [isFullscreen, setIsFullscreen] = useState(false);
   
@@ -170,6 +174,8 @@ const HUD: React.FC<HUDProps> = ({
               {[
                 { id: 'Protocols', icon: '⚡', label: 'Cmd' },
                 { id: 'Telemetry', icon: '📊', label: 'Stats' },
+                { id: 'Chat', icon: '💬', label: 'Chat' },
+                { id: 'Sculpt', icon: '🧊', label: 'Sculpt' },
                 { id: 'Web', icon: '🌐', label: 'Web' },
               ].map(item => (
                 <button key={item.id} onClick={() => setActiveModal(item.id as any)} className="flex flex-col items-center gap-1 group">
@@ -205,6 +211,15 @@ const HUD: React.FC<HUDProps> = ({
                    <span className="text-[7px] text-white/40 uppercase tracking-widest">{item.label}</span>
                 </button>
               ))}
+              
+              <GestureControl 
+                themeColors={themeColors}
+                onCommand={(cmd) => {
+                  if (cmd === 'reload') window.location.reload();
+                  else if (cmd.startsWith('search')) window.open(`https://google.com/search?q=${encodeURIComponent(cmd.replace('search ', ''))}`, '_blank');
+                  addLog(`GESTURE: ${cmd}`);
+                }}
+              />
            </div>
            
            {/* Pulsating Om Symbol */}
@@ -221,13 +236,16 @@ const HUD: React.FC<HUDProps> = ({
         <div className="absolute inset-0 z-[200] flex items-center justify-center p-4">
            <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" onClick={() => setActiveModal(null)}></div>
            
-           <div className={`relative bg-slate-900 border ${themeColors.border}/40 rounded-[32px] w-full flex flex-col overflow-hidden shadow-2xl transition-all duration-300 ${activeModal === 'Web' ? 'max-w-[95%] h-[90vh]' : 'max-w-[420px] max-h-[75vh]'}`}>
+           <div className={`relative bg-slate-900 border ${themeColors.border}/40 rounded-[32px] w-full flex flex-col overflow-hidden shadow-2xl transition-all duration-300 ${activeModal === 'Web' || activeModal === 'Sculpt' ? 'max-w-[95%] h-[90vh]' : 'max-w-[420px] max-h-[75vh]'}`}>
               <div className="p-6 border-b border-white/5 flex justify-between items-center bg-black/20">
                  <h2 className="text-sm font-black text-white uppercase tracking-widest">{activeModal} Protocol</h2>
                  <button onClick={() => setActiveModal(null)} className="text-white/30 hover:text-white text-2xl">&times;</button>
               </div>
               
               <div className="flex-1 overflow-y-auto p-6 text-xs custom-scrollbar">
+                 {activeModal === 'Sculpt' && (
+                    <Hand3DExperience themeColors={themeColors} />
+                 )}
                  {activeModal === 'Web' && (
                     <div className="h-full flex flex-col space-y-6">
                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -273,6 +291,9 @@ const HUD: React.FC<HUDProps> = ({
                          </div>
                        ))}
                     </div>
+                 )}
+                 {activeModal === 'Chat' && (
+                    <ChatModal themeColors={themeColors} addLog={addLog} />
                  )}
                  {activeModal === 'History' && (
                    <div className="space-y-4">

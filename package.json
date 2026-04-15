@@ -10,9 +10,21 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
-    "react-dom": "^19.2.3",
     "@google/genai": "^1.38.0",
-    "react": "^19.2.3"
+    "@mediapipe/drawing_utils": "^0.3.1675466124",
+    "@mediapipe/hands": "^0.4.1675469240",
+    "@react-three/drei": "^10.7.7",
+    "@react-three/fiber": "^9.6.0",
+    "@types/three": "^0.183.1",
+    "clsx": "^2.1.1",
+    "firebase": "^12.10.0",
+    "lucide-react": "^1.8.0",
+    "motion": "^12.38.0",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
+    "react-webcam": "^7.2.0",
+    "tailwind-merge": "^3.5.0",
+    "three": "^0.183.2"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",

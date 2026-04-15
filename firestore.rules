@@ -1,0 +1,116 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Document ID: {userId}
+    // Fields:
+    //   - theme: string (optional, enum)
+    //   - power: number (optional)
+    //   - memory: number (optional)
+    //   - logic: number (optional)
+    //   - cpu: number (optional)
+    //
+    // Collection: users/{userId}/history
+    // Document ID: {messageId}
+    // Fields:
+    //   - role: string (required, 'user' or 'assistant')
+    //   - content: string (required)
+    //   - timestamp: number (required)
+    //
+    // Collection: users/{userId}/protocols
+    // Document ID: {protocolId}
+    // Fields:
+    //   - phrase: string (required)
+    //   - action: string (required)
+    //
+    // Collection: users/{userId}/shortcuts
+    // Document ID: {shortcutId}
+    // Fields:
+    //   - alias: string (required)
+    //   - command: string (required)
+    //   - description: string (required)
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // Domain Validators
+    function isValidUser() {
+      return hasOnlyAllowedFields(['theme', 'power', 'memory', 'logic', 'cpu']) &&
+             (!('theme' in request.resource.data) || request.resource.data.theme in ['Indigo', 'Saffron', 'Emerald']) &&
+             (!('power' in request.resource.data) || request.resource.data.power is number) &&
+             (!('memory' in request.resource.data) || request.resource.data.memory is number) &&
+             (!('logic' in request.resource.data) || request.resource.data.logic is number) &&
+             (!('cpu' in request.resource.data) || request.resource.data.cpu is number);
+    }
+
+    function isValidMessage() {
+      return hasOnlyAllowedFields(['role', 'content', 'timestamp']) &&
+             hasRequiredFields(['role', 'content', 'timestamp']) &&
+             request.resource.data.role in ['user', 'assistant'] &&
+             request.resource.data.content is string && request.resource.data.content.size() <= 100000 &&
+             request.resource.data.timestamp is number;
+    }
+
+    function isValidProtocol() {
+      return hasOnlyAllowedFields(['phrase', 'action']) &&
+             hasRequiredFields(['phrase', 'action']) &&
+             request.resource.data.phrase is string && request.resource.data.phrase.size() <= 1000 &&
+             request.resource.data.action is string && request.resource.data.action.size() <= 5000;
+    }
+
+    function isValidShortcut() {
+      return hasOnlyAllowedFields(['alias', 'command', 'description']) &&
+             hasRequiredFields(['alias', 'command', 'description']) &&
+             request.resource.data.alias is string && request.resource.data.alias.size() <= 100 &&
+             request.resource.data.command is string && request.resource.data.command.size() <= 5000 &&
+             request.resource.data.description is string && request.resource.data.description.size() <= 1000;
+    }
+
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isOwner(userId) && isValidUser();
+      allow update: if isOwner(userId) && isValidUser();
+      allow delete: if isOwner(userId);
+
+      match /history/{messageId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidMessage();
+        allow update: if isOwner(userId) && isValidMessage();
+        allow delete: if isOwner(userId);
+      }
+
+      match /protocols/{protocolId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidProtocol();
+        allow update: if isOwner(userId) && isValidProtocol();
+        allow delete: if isOwner(userId);
+      }
+
+      match /shortcuts/{shortcutId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidShortcut();
+        allow update: if isOwner(userId) && isValidShortcut();
+        allow delete: if isOwner(userId);
+      }
+    }
+  }
+}

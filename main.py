@@ -1,3 +1,4 @@
+
 import cv2
 import mediapipe as mp
 import webview
@@ -6,7 +7,7 @@ import time
 import sys
 import os
 
-
+# MediaPipe Configuration
 mp_hands = mp.solutions.hands
 hands = mp_hands.Hands(
     static_image_mode=False,
@@ -28,6 +29,8 @@ class BRAHMASTRACore:
         Detects a 'Stop' gesture (Open Palm).
         Logic: All fingertips must be significantly higher than their MCP joints.
         """
+        # Finger tip indices: Index=8, Middle=12, Ring=16, Pinky=20
+        # Finger MCP indices: Index=5, Middle=9, Ring=13, Pinky=17
         tips = [8, 12, 16, 20]
         mcps = [5, 9, 13, 17]
         
@@ -43,6 +46,7 @@ class BRAHMASTRACore:
             pass # Simplified for generic stop
             
         return is_stop
+
     def camera_worker(self):
         """
         Background thread for computer vision.
@@ -94,12 +98,14 @@ class BRAHMASTRACore:
                             self.trigger_ui_mute()
                             self.last_gesture_time = current_time
 
+            # Small sleep to reduce CPU load (20 FPS is enough for gesture)
             time.sleep(0.05)
         
         cap.release()
 
     def trigger_ui_mute(self):
         if self.window:
+            # Injecting JS directly into the Webview context
             js_code = """
             if (window.brahmastra_uplink) {
                 window.brahmastra_uplink.toggleMute();

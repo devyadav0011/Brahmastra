@@ -1,9 +1,12 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { GoogleGenAI, LiveServerMessage, Modality } from '@google/genai';
+import { GoogleGenAI, LiveServerMessage, Modality, ThinkingLevel } from '@google/genai';
 import { SYSTEM_INSTRUCTION_BASE, MODEL_NAME, SYSTEM_COMMAND_TOOL, SEARCH_SCRIPTURES_TOOL } from './constants';
 import { ConnectionStatus, Protocol, ScriptureResult, Message, ThemeType, Process, CommandShortcut } from './types';
 import HUD from './components/HUD';
+import { auth, db, signInWithGoogle, logOut } from './firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { doc, setDoc, getDoc, collection, onSnapshot, deleteDoc } from 'firebase/firestore';
 
 function decode(base64: string) {
   const binaryString = atob(base64);
@@ -48,8 +51,20 @@ const App: React.FC = () => {
   const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
   const [protocolAlert, setProtocolAlert] = useState<string | null>(null);
   
+  // Vision state (Now controlled externally by Python)
   const [isVisionActive, setIsVisionActive] = useState(true); 
   
+  const [user, setUser] = useState<any>(null);
+  const [isAuthReady, setIsAuthReady] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u);
+      setIsAuthReady(true);
+    });
+    return () => unsubscribe();
+  }, []);
+
   const [commandLogs, setCommandLogs] = useState<string[]>(["Brahmastra OS initializing...", "Waiting for admin uplink..."]);
   const [systemStats, setSystemStats] = useState({ power: 92, memory: 38, logic: 99, cpu: 8 });
   const [processes, setProcesses] = useState<Process[]>([
@@ -57,10 +72,36 @@ const App: React.FC = () => {
     { pid: 2048, name: 'gesture_engine.py', cpu: 12.5, memory: 256, status: 'Running' },
   ]);
   
-  const [theme, setTheme] = useState<ThemeType>(() => (localStorage.getItem('brahmastra_theme') as ThemeType) || 'Indigo');
-  const [history, setHistory] = useState<Message[]>(() => JSON.parse(localStorage.getItem('brahmastra_history') || '[]'));
-  const [protocols, setProtocols] = useState<Protocol[]>(() => JSON.parse(localStorage.getItem('brahmastra_protocols') || '[]'));
-  const [commandShortcuts, setCommandShortcuts] = useState<CommandShortcut[]>(() => JSON.parse(localStorage.getItem('brahmastra_shortcuts') || '[]'));
+  const [theme, setTheme] = useState<ThemeType>('Indigo');
+  const [history, setHistory] = useState<Message[]>([]);
+  const [protocols, setProtocols] = useState<Protocol[]>([]);
+  const [commandShortcuts, setCommandShortcuts] = useState<CommandShortcut[]>([]);
+
+  useEffect(() => {
+    if (!user) return;
+    const unsubUser = onSnapshot(doc(db, 'users', user.uid), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        if (data.theme) setTheme(data.theme);
+        if (data.power) setSystemStats(prev => ({ ...prev, power: data.power }));
+      }
+    });
+    const unsubHistory = onSnapshot(collection(db, `users/${user.uid}/history`), (snap) => {
+      setHistory(snap.docs.map(d => d.data() as Message).sort((a, b) => a.timestamp - b.timestamp));
+    });
+    const unsubProtocols = onSnapshot(collection(db, `users/${user.uid}/protocols`), (snap) => {
+      setProtocols(snap.docs.map(d => ({ ...d.data(), id: d.id } as Protocol)));
+    });
+    const unsubShortcuts = onSnapshot(collection(db, `users/${user.uid}/shortcuts`), (snap) => {
+      setCommandShortcuts(snap.docs.map(d => ({ ...d.data(), id: d.id } as CommandShortcut)));
+    });
+    return () => { unsubUser(); unsubHistory(); unsubProtocols(); unsubShortcuts(); };
+  }, [user]);
+
+  useEffect(() => {
+    if (!user) return;
+    setDoc(doc(db, 'users', user.uid), { theme, power: systemStats.power }, { merge: true });
+  }, [theme, systemStats.power, user]);
   
   const audioContextRef = useRef<AudioContext | null>(null);
   const outputAudioContextRef = useRef<AudioContext | null>(null);
@@ -90,6 +131,7 @@ const App: React.FC = () => {
     });
   }, [addLog, stopAudio]);
 
+  // UPLINK: Exposing functionality to Python backend
   useEffect(() => {
     (window as any).brahmastra_uplink = {
       toggleMute: toggleMute,
@@ -253,6 +295,7 @@ const App: React.FC = () => {
             }
             if (message.serverContent?.interrupted) stopAudio();
             
+            // Handle Tool Calls (Simulated PC Commands & Scripture Search)
             if (message.toolCall) {
               for (const fc of message.toolCall.functionCalls) {
                 if (fc.name === 'execute_system_command') {
@@ -263,7 +306,7 @@ const App: React.FC = () => {
                     });
                   });
                 } else if (fc.name === 'search_scriptures') {
-                  const result = await searchScriptures(fc.args.query);
+                  const result = await searchScriptures(fc.args.query as string);
                   sessionPromise.then(session => {
                     session.sendToolResponse({
                       functionResponses: [{ id: fc.id, name: fc.name, response: { result } }]
@@ -294,12 +337,57 @@ const App: React.FC = () => {
     }
   }, [addLog, isMuted, stopAudio]);
 
-  useEffect(() => {
-    localStorage.setItem('brahmastra_protocols', JSON.stringify(protocols));
-    localStorage.setItem('brahmastra_history', JSON.stringify(history));
-    localStorage.setItem('brahmastra_theme', theme);
-    localStorage.setItem('brahmastra_shortcuts', JSON.stringify(commandShortcuts));
-  }, [protocols, history, theme, commandShortcuts]);
+  // Removed localStorage syncing
+
+  const [isSigningIn, setIsSigningIn] = useState(false);
+  const [signInError, setSignInError] = useState<string | null>(null);
+
+  const handleSignIn = async () => {
+    if (isSigningIn) return;
+    setIsSigningIn(true);
+    setSignInError(null);
+    try {
+      await signInWithGoogle();
+    } catch (error: any) {
+      console.error("Sign in failed:", error);
+      if (error?.code === 'auth/cancelled-popup-request' || error?.message?.includes('cancelled-popup-request')) {
+        setSignInError("Sign-in popup was closed before completing. Please try again.");
+      } else {
+        setSignInError(error?.message || "An error occurred during sign in.");
+      }
+    } finally {
+      setIsSigningIn(false);
+    }
+  };
+
+  if (!isAuthReady) {
+    return <div className="h-screen w-screen bg-slate-950 flex items-center justify-center text-white font-orbitron">INITIALIZING...</div>;
+  }
+
+  if (!user) {
+    return (
+      <div className="h-screen w-screen bg-slate-950 flex items-center justify-center text-white font-orbitron relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(15,23,42,0.8)_0%,#020617_100%)] pointer-events-none"></div>
+        <div className="z-10 flex flex-col items-center gap-8 bg-slate-900/60 p-12 rounded-[40px] border border-white/10 shadow-[0_0_60px_-10px_rgba(6,182,212,0.4)] backdrop-blur-3xl">
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-4xl text-cyan-400 animate-om">ॐ</span>
+            <h1 className="text-3xl font-black tracking-tighter mt-4">BRAHMASTRA OS</h1>
+            <p className="text-xs text-cyan-400/60 tracking-widest uppercase">Awaiting Admin Uplink</p>
+          </div>
+          <button 
+            onClick={handleSignIn}
+            disabled={isSigningIn}
+            className={`px-8 py-4 bg-cyan-500/20 hover:bg-cyan-500/30 border border-cyan-500/50 rounded-2xl text-cyan-400 font-bold tracking-widest uppercase transition-all ${isSigningIn ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105'}`}
+          >
+            {isSigningIn ? 'Initiating...' : 'Initiate Handshake'}
+          </button>
+          {signInError && (
+            <p className="text-red-400 text-xs text-center max-w-xs">{signInError}</p>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-screen w-screen bg-slate-950 overflow-hidden relative">
@@ -313,8 +401,11 @@ const App: React.FC = () => {
         transcription={transcription}
         aiResponse={aiResponse}
         protocols={protocols}
-        onAddProtocol={(p) => setProtocols(prev => [...prev, { ...p, id: Date.now().toString() }])}
-        onRemoveProtocol={(id) => setProtocols(prev => prev.filter(p => p.id !== id))}
+        onAddProtocol={(p) => {
+          const id = Date.now().toString();
+          setDoc(doc(db, `users/${user.uid}/protocols`, id), p);
+        }}
+        onRemoveProtocol={(id) => deleteDoc(doc(db, `users/${user.uid}/protocols`, id))}
         onTogglePower={() => status === ConnectionStatus.CONNECTED ? disconnect() : connect()}
         onSearchScriptures={() => {}} 
         scriptureResults={scriptureResults}
@@ -323,26 +414,49 @@ const App: React.FC = () => {
         systemStats={systemStats}
         memoryCount={0}
         history={history}
-        onClearHistory={() => setHistory([])}
+        onClearHistory={() => {
+          history.forEach(h => deleteDoc(doc(db, `users/${user.uid}/history`, h.timestamp.toString())));
+        }}
         onDownloadHistory={() => {}}
         processes={processes}
         onKillProcess={(pid) => setProcesses(prev => prev.filter(p => p.pid !== pid))}
         onImageUpload={async (file) => {
            setIsAnalyzingImage(true);
            addLog(`SCAN: Analyzing data package: ${file.name}`);
-           // Simple visual scan placeholder
-           setTimeout(() => {
+           try {
+             const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+             const reader = new FileReader();
+             reader.onloadend = async () => {
+               const base64Data = (reader.result as string).split(',')[1];
+               const response = await ai.models.generateContent({
+                 model: 'gemini-3.1-pro-preview',
+                 contents: {
+                   parts: [
+                     { inlineData: { data: base64Data, mimeType: file.type } },
+                     { text: 'Analyze this image in detail as an AI concierge.' }
+                   ]
+                 }
+               });
+               addLog(`SCAN RESULT: ${response.text?.substring(0, 100)}...`);
+             };
+             reader.readAsDataURL(file);
+           } catch (e) {
+             addLog("SCAN: Analysis failed.");
+           } finally {
              setIsAnalyzingImage(false);
-             addLog("SCAN: Analysis complete. No threats detected.");
-           }, 2000);
+           }
         }}
         isAnalyzingImage={isAnalyzingImage}
         commandShortcuts={commandShortcuts}
-        onAddShortcut={(s) => setCommandShortcuts(prev => [...prev, { ...s, id: Date.now().toString() }])}
-        onUpdateShortcut={(s) => setCommandShortcuts(prev => prev.map(item => item.id === s.id ? s : item))}
-        onDeleteShortcut={(id) => setCommandShortcuts(prev => prev.filter(s => s.id !== id))}
+        onAddShortcut={(s) => {
+          const id = Date.now().toString();
+          setDoc(doc(db, `users/${user.uid}/shortcuts`, id), s);
+        }}
+        onUpdateShortcut={(s) => setDoc(doc(db, `users/${user.uid}/shortcuts`, s.id), { alias: s.alias, command: s.command, description: s.description })}
+        onDeleteShortcut={(id) => deleteDoc(doc(db, `users/${user.uid}/shortcuts`, id))}
         onToggleVision={() => setIsVisionActive(!isVisionActive)}
         isVisionActive={isVisionActive}
+        addLog={addLog}
       />
     </div>
   );

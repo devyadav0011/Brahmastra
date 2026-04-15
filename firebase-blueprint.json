@@ -1,0 +1,66 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile and settings",
+      "type": "object",
+      "properties": {
+        "theme": { "type": "string", "enum": ["Indigo", "Saffron", "Emerald"] },
+        "power": { "type": "number" },
+        "memory": { "type": "number" },
+        "logic": { "type": "number" },
+        "cpu": { "type": "number" }
+      }
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A chat message",
+      "type": "object",
+      "properties": {
+        "role": { "type": "string", "enum": ["user", "assistant"] },
+        "content": { "type": "string" },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["role", "content", "timestamp"]
+    },
+    "Protocol": {
+      "title": "Protocol",
+      "description": "A voice command protocol",
+      "type": "object",
+      "properties": {
+        "phrase": { "type": "string" },
+        "action": { "type": "string" }
+      },
+      "required": ["phrase", "action"]
+    },
+    "CommandShortcut": {
+      "title": "CommandShortcut",
+      "description": "A command shortcut",
+      "type": "object",
+      "properties": {
+        "alias": { "type": "string" },
+        "command": { "type": "string" },
+        "description": { "type": "string" }
+      },
+      "required": ["alias", "command", "description"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profile document"
+    },
+    "/users/{userId}/history/{messageId}": {
+      "schema": { "$ref": "#/entities/Message" },
+      "description": "User's chat history"
+    },
+    "/users/{userId}/protocols/{protocolId}": {
+      "schema": { "$ref": "#/entities/Protocol" },
+      "description": "User's custom protocols"
+    },
+    "/users/{userId}/shortcuts/{shortcutId}": {
+      "schema": { "$ref": "#/entities/CommandShortcut" },
+      "description": "User's command shortcuts"
+    }
+  }
+}
