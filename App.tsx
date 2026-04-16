@@ -131,7 +131,6 @@ const App: React.FC = () => {
     });
   }, [addLog, stopAudio]);
 
-  // UP
   useEffect(() => {
     (window as any).brahmastra_uplink = {
       toggleMute: toggleMute,
