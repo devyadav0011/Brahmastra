@@ -65,6 +65,7 @@
           .then(reg => {
             console.debug('BRAHMASTRA: Local Node synchronized successfully.');
           })
+            
           .catch(err => {
             if (err.name === 'SecurityError' || err.message.includes('origin') || err.message.includes('protocol')) {
               console.warn('BRAHMASTRA: PWA deployment bypassed due to host security constraints.');
