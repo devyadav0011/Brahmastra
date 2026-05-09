@@ -105,7 +105,6 @@ class BRAHMASTRACore:
 
     def trigger_ui_mute(self):
         if self.window:
-            # Injecting JS directly into the Webview context
             js_code = """
             if (window.brahmastra_uplink) {
                 window.brahmastra_uplink.toggleMute();
