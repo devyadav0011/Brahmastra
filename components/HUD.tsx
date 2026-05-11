@@ -49,7 +49,9 @@ const HUD: React.FC<HUDProps> = ({
 }) => {
   const [time, setTime] = useState(new Date().toLocaleTimeString());
   const [activeModal, setActiveModal] = useState<'Protocols' | 'Scriptures' | 'History' | 'Telemetry' | 'Web' | 'Chat' | 'Sculpt' | null>(null);
-  const [telemetryTab, setTelemetryTab] = useState<'Processes' | 'Commands'>('Processes');
+  const [telemetryTab, setTelemetryTab] = useState<'Processes' | 'Matrix'>('Processes');
+  const [newShortcut, setNewShortcut] = useState({ alias: '', command: '', description: '' });
+  const [isAddingShortcut, setIsAddingShortcut] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -266,17 +268,126 @@ const HUD: React.FC<HUDProps> = ({
                        </div>
                     </div>
                  )}
-                 {activeModal === 'Telemetry' && telemetryTab === 'Processes' && (
-                    <div className="space-y-4">
-                       {processes.map(p => (
-                         <div key={p.pid} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5">
-                            <div className="truncate flex-1">
-                               <div className="font-bold text-white uppercase tracking-tight">{p.name}</div>
-                               <div className="text-[8px] text-white/40 font-mono">PID {p.pid} • {p.cpu.toFixed(1)}% CPU</div>
-                            </div>
-                            <button onClick={() => onKillProcess(p.pid)} className="text-red-500/50 hover:text-red-500 text-lg ml-2">&times;</button>
-                         </div>
-                       ))}
+                 {activeModal === 'Telemetry' && (
+                    <div className="flex flex-col h-full space-y-6">
+                       <div className="flex gap-2 p-1 bg-white/5 rounded-2xl border border-white/5">
+                          {(['Processes', 'Matrix'] as const).map(tab => (
+                             <button
+                                key={tab}
+                                onClick={() => setTelemetryTab(tab)}
+                                className={`flex-1 py-2 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                   telemetryTab === tab ? `${themeColors.bg} text-slate-950` : 'text-white/40 hover:text-white/60'
+                                }`}
+                             >
+                                {tab}
+                             </button>
+                          ))}
+                       </div>
+
+                       {telemetryTab === 'Processes' ? (
+                          <div className="space-y-4">
+                             <div className="text-[7px] font-black text-white/30 tracking-[0.3em] uppercase mb-2">Active Neural Threads</div>
+                             {processes.map(p => (
+                                <div key={p.pid} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 group hover:border-white/20 transition-all">
+                                   <div className="truncate flex-1">
+                                      <div className="font-bold text-white uppercase tracking-tight flex items-center gap-2">
+                                         {p.name}
+                                         <span className={`w-1.5 h-1.5 rounded-full ${p.status === 'Running' ? 'bg-green-500' : 'bg-yellow-500'}`}></span>
+                                      </div>
+                                      <div className="text-[8px] text-white/40 font-mono">PID {p.pid} • {p.cpu.toFixed(1)}% CPU • {p.memory.toFixed(1)}MB RAM</div>
+                                   </div>
+                                   <button 
+                                      onClick={() => onKillProcess(p.pid)} 
+                                      className="w-8 h-8 flex items-center justify-center rounded-lg bg-red-500/10 text-red-500/50 hover:bg-red-500/20 hover:text-red-500 transition-all"
+                                   >
+                                      &times;
+                                   </button>
+                                </div>
+                             ))}
+                          </div>
+                       ) : (
+                          <div className="space-y-6">
+                             {/* System Handlers */}
+                             <section>
+                                <div className="text-[7px] font-black text-white/30 tracking-[0.3em] uppercase mb-3">Hardcoded Logic Gates</div>
+                                <div className="grid grid-cols-1 gap-2">
+                                   {[
+                                      { cmd: 'open [site]', desc: 'Bypass firewall to external domains' },
+                                      { cmd: 'search [query]', desc: 'Scan global data arrays' },
+                                      { cmd: 'play [song]', desc: 'Synchronize audio frequencies' },
+                                      { cmd: 'reload', desc: 'Re-initialize core subsystems' },
+                                      { cmd: 'scroll up/down', desc: 'Navigate visual buffer' }
+                                   ].map((sys, idx) => (
+                                      <div key={idx} className="p-3 bg-cyan-500/5 border border-cyan-500/20 rounded-xl">
+                                         <div className="font-mono text-[9px] text-cyan-400 font-bold">{sys.cmd}</div>
+                                         <div className="text-[8px] text-white/40">{sys.desc}</div>
+                                      </div>
+                                   ))}
+                                </div>
+                             </section>
+
+                             {/* Custom Shortcut Matrix */}
+                             <section className="space-y-4">
+                                <div className="flex justify-between items-center">
+                                   <div className="text-[7px] font-black text-white/30 tracking-[0.3em] uppercase">Shortcut Matrix</div>
+                                   <button 
+                                      onClick={() => setIsAddingShortcut(!isAddingShortcut)}
+                                      className={`text-[8px] font-bold uppercase tracking-widest px-2 py-1 rounded border transition-all ${isAddingShortcut ? 'bg-red-500/20 border-red-500/40 text-red-400' : 'bg-green-500/20 border-green-500/40 text-green-400'}`}
+                                   >
+                                      {isAddingShortcut ? 'Cancel' : '+ New Entry'}
+                                   </button>
+                                </div>
+
+                                {isAddingShortcut && (
+                                   <div className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-3 animate-fadeIn">
+                                      <input 
+                                         placeholder="ALIAS (e.g. 'yt')" 
+                                         value={newShortcut.alias}
+                                         onChange={e => setNewShortcut({...newShortcut, alias: e.target.value})}
+                                         className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] text-white focus:border-cyan-500 outline-none"
+                                      />
+                                      <input 
+                                         placeholder="COMMAND (e.g. 'open youtube.com')" 
+                                         value={newShortcut.command}
+                                         onChange={e => setNewShortcut({...newShortcut, command: e.target.value})}
+                                         className="w-full bg-black/40 border border-white/10 rounded-lg p-2 text-[10px] text-white focus:border-cyan-500 outline-none"
+                                      />
+                                      <button 
+                                         onClick={() => {
+                                            if (newShortcut.alias && newShortcut.command) {
+                                               onAddShortcut({ ...newShortcut, description: `Custom alias for ${newShortcut.command}` });
+                                               setNewShortcut({ alias: '', command: '', description: '' });
+                                               setIsAddingShortcut(false);
+                                            }
+                                         }}
+                                         className="w-full py-2 bg-cyan-500 text-slate-950 rounded-lg text-[9px] font-black uppercase tracking-widest"
+                                      >
+                                         Authorize Link
+                                      </button>
+                                   </div>
+                                )}
+
+                                <div className="grid grid-cols-1 gap-2">
+                                   {commandShortcuts.map(s => (
+                                      <div key={s.id} className="flex items-center justify-between p-3 bg-white/5 rounded-xl border border-white/5 group hover:border-white/20 transition-all">
+                                         <div className="flex-1">
+                                            <div className="flex items-center gap-2">
+                                               <span className="px-1.5 py-0.5 bg-cyan-500/20 text-cyan-400 rounded text-[8px] font-bold font-mono">{s.alias}</span>
+                                               <span className="text-[10px] text-white font-bold">{s.command}</span>
+                                            </div>
+                                         </div>
+                                         <button 
+                                            onClick={() => onDeleteShortcut(s.id)}
+                                            className="text-red-500/30 hover:text-red-500 p-1 transition-colors"
+                                         >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                         </button>
+                                      </div>
+                                   ))}
+                                </div>
+                             </section>
+                          </div>
+                       )}
                     </div>
                  )}
                  {activeModal === 'Protocols' && (

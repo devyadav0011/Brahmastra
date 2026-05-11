@@ -46,7 +46,6 @@
         .glow-gold {
             box-shadow: 0 0 20px rgba(234, 179, 8, 0.4);
         }
-        
     </style>
 <script>
   if ('serviceWorker' in navigator) {
@@ -65,7 +64,6 @@
           .then(reg => {
             console.debug('BRAHMASTRA: Local Node synchronized successfully.');
           })
-            
           .catch(err => {
             if (err.name === 'SecurityError' || err.message.includes('origin') || err.message.includes('protocol')) {
               console.warn('BRAHMASTRA: PWA deployment bypassed due to host security constraints.');
@@ -80,7 +78,6 @@
   }
 </script>
 <link rel="stylesheet" href="/index.css">
-    
 </head>
 <body>
     <div id="root"></div>
