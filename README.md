@@ -1,71 +1,20 @@
-# Brahmastra AI 🚀
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-Brahmastra AI is an advanced AI-powered platform designed to perform multiple intelligent tasks through automation, machine learning, and modern software engineering.
-Inspired by the idea of a single powerful solution, Brahmastra AI combines productivity, intelligence, and scalability into one ecosystem.
+# Run and deploy your AI Studio app
 
-# 🌟 Features
+This contains everything you need to run your app locally.
 
-🤖 AI Chat Assistant
+View your app in AI Studio: https://ai.studio/apps/c1601bfa-0faf-4871-b9b4-e5de335b5fe9
 
-🧠 Natural Language Processing
+## Run Locally
 
-🔍 Smart Search & Query System
-
-📄 AI Content Generation
-
-💻 Code Generation & Debugging
-
-📊 Data Analysis & Visualization
-
-🔐 Secure Authentication System
-
-☁️ Cloud-Based Architecture
-
-⚡ Fast & Scalable APIs
-
-🎯 Modular & Extensible Design
+**Prerequisites:**  Node.js
 
 
-# 🛠️ Tech Stack
-
-# Frontend
-
-React.js / Next.js
-
-Tailwind CSS
-
-TypeScript
-
-# Backend
-
-Node.js
-
-Express.js / FastAPI
-
-AI & ML
-
-Python
-
-OpenAI / Gemini APIs
-
-TensorFlow / PyTorch
-
-Database
-
-MongoDB / PostgreSQL
-
-DevOps
-
-Docker
-
-GitHub Actions
-
-Vercel / AWS
-
-* 📜 License
-
-This project is licensed under the MIT License.
-
-👨‍💻 Author
-
-# Developed with ❤️ by Dev
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

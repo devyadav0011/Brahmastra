@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { ConnectionStatus, Protocol, ScriptureResult, Message, ThemeType, Process, CommandShortcut } from '../types';
 import { ChatModal } from './ChatModal';
 import { GestureControl } from './GestureControl';
@@ -136,19 +137,36 @@ const HUD: React.FC<HUDProps> = ({
               </div>
            </div>
 
-           <div className="w-full mt-8 text-center px-4 min-h-[160px] flex flex-col justify-center gap-4">
-              {transcription && (
-                <div className="animate-fadeIn">
-                   <span className={`text-[7px] ${themeColors.text} font-black uppercase tracking-[0.4em] mb-1 block`}>Vocal Uplink</span>
-                   <p className="text-slate-400 text-xs italic">"{transcription}"</p>
-                </div>
-              )}
-              {aiResponse && (
-                <div className="animate-fadeIn">
-                   <span className="text-[7px] text-yellow-500 font-black uppercase tracking-[0.4em] mb-1 block">Brahmastra</span>
-                   <p className="text-white text-md font-bold leading-snug tracking-wide">{aiResponse}</p>
-                </div>
-              )}
+           <div className="w-full mt-8 text-center px-4 min-h-[160px] flex flex-col justify-center gap-4 relative">
+              <AnimatePresence mode="wait">
+                 {transcription && (
+                   <motion.div 
+                     key="transcription"
+                     initial={{ opacity: 0, y: 10 }}
+                     animate={{ opacity: 1, y: 0 }}
+                     exit={{ opacity: 0, y: -10 }}
+                     transition={{ duration: 0.3 }}
+                   >
+                      <span className={`text-[7px] ${themeColors.text} font-black uppercase tracking-[0.4em] mb-1 block`}>Vocal Uplink</span>
+                      <p className="text-slate-400 text-xs italic line-clamp-2">"{transcription}"</p>
+                   </motion.div>
+                 )}
+                 {aiResponse && (
+                   <motion.div 
+                     key="ai-response"
+                     initial={{ opacity: 0, scale: 0.95 }}
+                     animate={{ opacity: 1, scale: 1 }}
+                     exit={{ opacity: 0, scale: 0.95 }}
+                     transition={{ duration: 0.4, type: "spring", stiffness: 100 }}
+                     className="max-h-[120px] overflow-y-auto custom-scrollbar px-2"
+                   >
+                      <span className="text-[7px] text-yellow-500 font-black uppercase tracking-[0.4em] mb-1 block">Brahmastra</span>
+                      <p className="text-white text-md font-bold leading-snug tracking-wide break-words">
+                        {aiResponse}
+                       </p>
+                   </motion.div>
+                 )}
+              </AnimatePresence>
            </div>
         </div>
 
