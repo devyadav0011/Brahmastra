@@ -57,11 +57,11 @@ Inspired by the idea of a single powerful solution, Brahmastra AI combines produ
 
 * Docker
 
-GitHub Actions
+* GitHub Actions
 
-Vercel / AWS
+* Vercel / AWS
 
-* 📜 License
+# 📜 License
 
 This project is licensed under the MIT License.
 
