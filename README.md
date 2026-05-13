@@ -4,13 +4,14 @@ Brahmastra AI is an advanced AI-powered platform designed to perform multiple in
 Inspired by the idea of a single powerful solution, Brahmastra AI combines productivity, intelligence, and scalability into one ecosystem.
 
 # 🌟 Features
-🤖 AI Chat Assistant
 
-🧠 Natural Language Processing
+* 🤖 AI Chat Assistant
 
-🔍 Smart Search & Query System
+* 🧠 Natural Language Processing
 
-📄 AI Content Generation
+* 🔍 Smart Search & Query System
+
+* 📄 AI Content Generation
 
 💻 Code Generation & Debugging
 
