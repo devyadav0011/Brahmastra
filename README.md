@@ -13,49 +13,49 @@ Inspired by the idea of a single powerful solution, Brahmastra AI combines produ
 
 * 📄 AI Content Generation
 
-💻 Code Generation & Debugging
+* 💻 Code Generation & Debugging
 
-📊 Data Analysis & Visualization
+* 📊 Data Analysis & Visualization
 
-🔐 Secure Authentication System
+* 🔐 Secure Authentication System
 
-☁️ Cloud-Based Architecture
+* ☁️ Cloud-Based Architecture
 
-⚡ Fast & Scalable APIs
+* ⚡ Fast & Scalable APIs
 
-🎯 Modular & Extensible Design
+* 🎯 Modular & Extensible Design
 
-🛠️ Tech Stack
+# 🛠️ Tech Stack
 
-Frontend
+# Frontend
 
-React.js / Next.js
+* React.js / Next.js
 
-Tailwind CSS
+* Tailwind CSS
 
-TypeScript
+* TypeScript
 
-Backend
+# Backend
 
-Node.js
+* Node.js
 
-Express.js / FastAPI
+* Express.js / FastAPI
 
-AI & ML
+* AI & ML
 
-Python
+* Python
 
-OpenAI / Gemini APIs
+* OpenAI / Gemini APIs
 
-TensorFlow / PyTorch
+* TensorFlow / PyTorch
 
-Database
+* Database
 
-MongoDB / PostgreSQL
+* MongoDB / PostgreSQL
 
-DevOps
+* DevOps
 
-Docker
+* Docker
 
 GitHub Actions
 
