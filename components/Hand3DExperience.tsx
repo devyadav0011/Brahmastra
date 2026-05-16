@@ -61,7 +61,6 @@ const Structure = ({ points }: { points: Point3D[] }) => {
     </>
   );
 };
-
 export const Hand3DExperience: React.FC<{ themeColors: any }> = ({ themeColors }) => {
   const webcamRef = useRef<Webcam>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
