@@ -67,4 +67,4 @@ This project is licensed under the MIT License.
 
 * 👨‍💻 Author
 
-# Developed with ❤️ by Dev
+# Developed with ❤️ Dev
