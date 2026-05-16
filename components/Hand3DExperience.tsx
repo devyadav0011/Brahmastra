@@ -177,6 +177,7 @@ export const Hand3DExperience: React.FC<{ themeColors: any }> = ({ themeColors }
           onUserMediaError={() => {}}
           screenshotQuality={1}
         />
+        
         <canvas
           ref={canvasRef}
           className="absolute inset-0 w-full h-full z-10"
